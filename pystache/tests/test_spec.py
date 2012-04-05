@@ -20,6 +20,7 @@ except:
     # so Python 2.4 requires a simplejson install older than the most recent.
     import simplejson as json
 
+import codecs
 import glob
 import os.path
 import unittest
@@ -108,10 +109,18 @@ for spec_path in spec_paths:
 
     file_name  = os.path.basename(spec_path)
 
+    # We use codecs.open() for pre Python 2.6 support and because it ports
+    # correctly to Python 3:
+    #
+    #   "If pre-2.6 compatibility is needed, then you should use codecs.open()
+    #    instead. This will make sure that you get back unicode strings in Python 2."
+    #
+    #   (from http://docs.python.org/py3k/howto/pyporting.html#text-files )
+    #
+    f = codecs.open(spec_path, 'r', encoding=FILE_ENCODING)
     # We avoid use of the with keyword for Python 2.4 support.
-    f = open(spec_path, 'r')
     try:
-        s = f.read()
+        u = f.read()
     finally:
         f.close()
 
@@ -127,7 +136,6 @@ for spec_path in spec_paths:
     #    If your code expects only unicode the appropriate solution is
     #    decode s to unicode prior to calling loads."
     #
-    u = s.decode(FILE_ENCODING)
     spec_data = json.loads(u)
 
     tests = spec_data['tests']
